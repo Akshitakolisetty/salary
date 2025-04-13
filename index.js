@@ -211,7 +211,7 @@ async function start() {
     db = await mysql.createConnection({
       host: 'localhost',
       user: 'root',
-      password: 'Anwesh@2003', // 🔑 Verify this matches your MySQL
+      password: '********', // 🔑 Verify this matches your MySQL
       database: 'salary_management' // 🔍 Confirm DB name
     });
     console.log('✅ Connected to MySQL');
