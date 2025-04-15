@@ -5,25 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Salary Management</title>
 
-    <!-- ✅ Tailwind CSS CDN -->
+    <!-- ✅ Tailwind CSS Play CDN (working version) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Optional: Customize Tailwind theme -->
+
+    <!-- ✅ Optional: Custom Theme Configuration -->
     <script>
       tailwind.config = {
         theme: {
           extend: {
             colors: {
-              primary: '#1d4ed8',
-              secondary: '#9333ea',
+              primary: '#1d4ed8',   // blue-700
+              secondary: '#9333ea', // purple-600
             },
           },
         },
       };
     </script>
   </head>
-  <body>
-    <div id="root"></div>
+  <body class="bg-gray-100">
+    <div id="root" class="p-4"></div>
+
+    <!-- ✅ Your React app entry point -->
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

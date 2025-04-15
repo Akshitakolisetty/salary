@@ -1,6 +1,3 @@
-
-
-
 import React, { useState } from 'react';
 import {
   fetchEmployees,
@@ -8,6 +5,15 @@ import {
   updateEmployee,
   deleteEmployee,
 } from '../api/employee';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  ResponsiveContainer,
+} from 'recharts';
 
 export default function EmployeeList() {
   const [employees, setEmployees] = useState([]);
@@ -35,7 +41,7 @@ export default function EmployeeList() {
     try {
       await addEmployee(form);
       alert('Employee added');
-      setForm({ ...form, EmployeeID: '' }); // clear ID
+      setForm({ ...form, EmployeeID: '' });
       fetchAllEmployees();
     } catch (err) {
       alert(err.response?.data?.error || 'Error adding employee');
@@ -85,131 +91,133 @@ export default function EmployeeList() {
     });
   };
 
+  const departmentCounts = employees.reduce((acc, emp) => {
+    const deptId = emp.DepartmentID;
+    acc[deptId] = (acc[deptId] || 0) + 1;
+    return acc;
+  }, {});
+
+  const histogramData = Object.entries(departmentCounts).map(([deptId, count]) => ({
+    DepartmentID: deptId,
+    EmployeeCount: count,
+  }));
+
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-semibold mb-4">Employee Manager</h2>
+    <div className="max-w-7xl mx-auto p-6 bg-gray-50 min-h-screen">
+      <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">Employee Manager</h2>
 
-      <button
-        onClick={fetchAllEmployees}
-        className="bg-blue-600 text-white px-4 py-2 rounded"
-      >
-        Fetch All Employees
-      </button>
-
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
-        <input
-          type="text"
-          placeholder="First Name"
-          value={form.FirstName}
-          onChange={(e) => setForm({ ...form, FirstName: e.target.value })}
-          className="border p-2 rounded"
-        />
-        <input
-          type="text"
-          placeholder="Last Name"
-          value={form.LastName}
-          onChange={(e) => setForm({ ...form, LastName: e.target.value })}
-          className="border p-2 rounded"
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={form.Email}
-          onChange={(e) => setForm({ ...form, Email: e.target.value })}
-          className="border p-2 rounded"
-        />
-        <input
-          type="text"
-          placeholder="Phone"
-          value={form.Phone}
-          onChange={(e) => setForm({ ...form, Phone: e.target.value })}
-          className="border p-2 rounded"
-        />
-        <input
-          type="text"
-          placeholder="Position"
-          value={form.Position}
-          onChange={(e) => setForm({ ...form, Position: e.target.value })}
-          className="border p-2 rounded"
-        />
-        <input
-          type="number"
-          placeholder="Department ID"
-          value={form.DepartmentID}
-          onChange={(e) => setForm({ ...form, DepartmentID: e.target.value })}
-          className="border p-2 rounded"
-        />
-        <input
-          type="date"
-          placeholder="Date of Joining"
-          value={form.DateOfJoining}
-          onChange={(e) => setForm({ ...form, DateOfJoining: e.target.value })}
-          className="border p-2 rounded"
-        />
+      <div className="flex justify-center mb-6">
+        <button
+          onClick={fetchAllEmployees}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded shadow transition"
+        >
+          Fetch All Employees
+        </button>
       </div>
 
-      <div className="flex gap-4 mt-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        {[
+          { name: 'First Name', key: 'FirstName', type: 'text' },
+          { name: 'Last Name', key: 'LastName', type: 'text' },
+          { name: 'Email', key: 'Email', type: 'email' },
+          { name: 'Phone', key: 'Phone', type: 'text' },
+          { name: 'Position', key: 'Position', type: 'text' },
+          { name: 'Department ID', key: 'DepartmentID', type: 'number' },
+          { name: 'Date of Joining', key: 'DateOfJoining', type: 'date' },
+        ].map(({ name, key, type }) => (
+          <input
+            key={key}
+            type={type}
+            placeholder={name}
+            value={form[key]}
+            onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+            className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+        ))}
+      </div>
+
+      <div className="flex flex-wrap gap-4 mb-8">
         <button
           onClick={handleAdd}
-          className="bg-green-600 text-white px-4 py-2 rounded"
+          className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded transition"
         >
           Add
         </button>
         <button
           onClick={handleUpdate}
-          className="bg-yellow-500 text-white px-4 py-2 rounded"
+          className={`${
+            form.EmployeeID ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-yellow-300 cursor-not-allowed'
+          } text-white px-6 py-2 rounded transition`}
           disabled={!form.EmployeeID}
         >
           Update
         </button>
-        {/* <button
+        <button
           onClick={handleDelete}
-          className="bg-red-600 text-white px-4 py-2 rounded"
+          className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded transition"
           disabled={!form.EmployeeID}
         >
           Delete
-        </button> */}
+        </button>
       </div>
 
-      {/* List of Employees */}
+      {histogramData.length > 0 && (
+        <div className="mb-10 bg-white p-6 rounded shadow">
+          <h3 className="text-xl font-semibold text-gray-700 mb-4">
+            Employees per Department
+          </h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={histogramData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="DepartmentID" />
+              <YAxis allowDecimals={false} />
+              <Tooltip />
+              <Bar dataKey="EmployeeCount" fill="#60a5fa" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
       {employees.length > 0 && (
-        <table className="min-w-full mt-6 bg-white border rounded">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border px-4 py-2">ID</th>
-              <th className="border px-4 py-2">Name</th>
-              <th className="border px-4 py-2">Email</th>
-              <th className="border px-4 py-2">Phone</th>
-              <th className="border px-4 py-2">Position</th>
-              <th className="border px-4 py-2">Dept</th>
-              <th className="border px-4 py-2">Joined</th>
-              <th className="border px-4 py-2">Select</th>
-            </tr>
-          </thead>
-          <tbody>
-            {employees.map((emp) => (
-              <tr key={emp.EmployeeID} className="hover:bg-gray-50">
-                <td className="border px-4 py-2">{emp.EmployeeID}</td>
-                <td className="border px-4 py-2">
-                  {emp.FirstName} {emp.LastName}
-                </td>
-                <td className="border px-4 py-2">{emp.Email}</td>
-                <td className="border px-4 py-2">{emp.Phone}</td>
-                <td className="border px-4 py-2">{emp.Position}</td>
-                <td className="border px-4 py-2">{emp.DepartmentID}</td>
-                <td className="border px-4 py-2">{emp.DateOfJoining?.slice(0, 10)}</td>
-                <td className="border px-4 py-2">
-                  <button
-                    onClick={() => handleSelect(emp)}
-                    className="text-blue-500 underline"
-                  >
-                    Select
-                  </button>
-                </td>
+        <div className="overflow-x-auto bg-white p-6 rounded shadow">
+          <table className="min-w-full text-sm text-left text-gray-600">
+            <thead className="text-xs uppercase bg-gray-100 text-gray-600">
+              <tr>
+                <th className="px-4 py-2 border">ID</th>
+                <th className="px-4 py-2 border">Name</th>
+                <th className="px-4 py-2 border">Email</th>
+                <th className="px-4 py-2 border">Phone</th>
+                <th className="px-4 py-2 border">Position</th>
+                <th className="px-4 py-2 border">Dept</th>
+                <th className="px-4 py-2 border">Joined</th>
+                <th className="px-4 py-2 border">Select</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {employees.map((emp) => (
+                <tr key={emp.EmployeeID} className="hover:bg-gray-50 transition">
+                  <td className="border px-4 py-2">{emp.EmployeeID}</td>
+                  <td className="border px-4 py-2">
+                    {emp.FirstName} {emp.LastName}
+                  </td>
+                  <td className="border px-4 py-2">{emp.Email}</td>
+                  <td className="border px-4 py-2">{emp.Phone}</td>
+                  <td className="border px-4 py-2">{emp.Position}</td>
+                  <td className="border px-4 py-2">{emp.DepartmentID}</td>
+                  <td className="border px-4 py-2">{emp.DateOfJoining?.slice(0, 10)}</td>
+                  <td className="border px-4 py-2">
+                    <button
+                      onClick={() => handleSelect(emp)}
+                      className="text-blue-500 hover:text-blue-700 underline transition"
+                    >
+                      Select
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
